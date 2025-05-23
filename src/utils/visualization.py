@@ -285,3 +285,29 @@ def save_error_maps(mae_pixel, rmse_pixel, medae_pixel, std_pixel, output_path="
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.savefig(output_path, dpi=600)
     plt.close()
+
+def generate_samples_from_shp(X_train, y_train, y_pred, shapefile_path, num_images=41):
+    gdf = gpd.read_file(shapefile_path)
+    x_coords, y_coords = gdf.geometry.x, gdf.geometry.y
+    ids = gdf['id'].tolist()
+
+    with rasterio.open("D:/depths/TIF/DEPTHS/depth_0.010_0.055.tiff") as src:
+        rows, cols = zip(*[rowcol(src.transform, x, y) for x, y in zip(x_coords, y_coords)])
+
+    point_info = list(zip(rows, cols, ids))  # row, col, id
+    sampled_indices = np.random.choice(range(X_train.shape[0]), size=num_images, replace=False)
+    
+    data = []
+    for img_idx in sampled_indices:
+        for row, col, pid in point_info:
+            try:
+                x = X_train[img_idx, row, col, 1]
+                y = X_train[img_idx, row, col, 2]
+                n = X_train[img_idx, row, col, 0]
+                depth = y_train[img_idx, row, col, 0]
+                depth_pred = y_pred[img_idx, row, col, 0]
+                data.append((row, col, pid, x, y, n, depth,depth_pred))
+            except IndexError:
+                continue
+
+    return data, sampled_indices, point_info
