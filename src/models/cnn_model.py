@@ -39,7 +39,7 @@ def correlation_weigths(X_train, y_train):
 # ============================
 # Create weight map based on correlation
 # ============================
-def create_weight_map(correlation_map, min_weight=1.0, max_weight=5.0):
+def create_weight_map(correlation_map, min_weight=0.1, max_weight=1.0):
     """
     Creates a weight map where low-correlation values are assigned less weight.
     """
